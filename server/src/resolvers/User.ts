@@ -6,6 +6,7 @@ import {
   Mutation,
   ObjectType,
   Resolver,
+  Query
 } from "type-graphql";
 import argon2 from "argon2";
 import { MyContext } from "../types";
@@ -37,29 +38,43 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { req, em }: MyContext) {
+    if (!req.session.userId) {
+      return null;
+    }
+
+    const user = await em.findOne(User, req.session.userId);
+    return user;
+  }
+
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: MyContext
+    @Ctx() { req, em }: MyContext
   ): Promise<UserResponse> {
     const { username, password } = options;
 
     if (username.length <= 3) {
       return {
-        errors: [{
-          field: 'username',
-          message: 'Length must be greater than 3'
-        }]
-      }
+        errors: [
+          {
+            field: "username",
+            message: "Length must be greater than 3"
+          }
+        ]
+      };
     }
 
     if (password.length <= 6) {
       return {
-        errors: [{
-          field: 'password',
-          message: 'Length must be greater than 6'
-        }]
-      }
+        errors: [
+          {
+            field: "password",
+            message: "Length must be greater than 6"
+          }
+        ]
+      };
     }
 
     const hashedPassword = await argon2.hash(password);
@@ -69,15 +84,19 @@ export class UserResolver {
     try {
       await em.persistAndFlush(user);
     } catch (err) {
-     if (err.code === "23505" || err.detail.includes("already exists")) {
-       return {
-         errors: [{
-           field: 'username',
-           message: 'Username taken.'
-         }]
-       }
-     }
+      if (err.code === "23505" || err.detail.includes("already exists")) {
+        return {
+          errors: [
+            {
+              field: "username",
+              message: "Username taken."
+            }
+          ]
+        };
+      }
     }
+
+    req.session.userId = user.id;
 
     return { user };
   }
@@ -85,7 +104,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async login(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: MyContext
+    @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     const { username, password } = options;
 
@@ -96,9 +115,9 @@ export class UserResolver {
         errors: [
           {
             field: "username",
-            message: "Username doesn't exist.",
-          },
-        ],
+            message: "Username doesn't exist."
+          }
+        ]
       };
     }
 
@@ -112,11 +131,11 @@ export class UserResolver {
             message: "Invalid username or password."
           }
         ]
-      }
+      };
     }
 
+    req.session.userId = user.id;
 
-    
     return {
       user
     };
