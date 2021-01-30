@@ -1,10 +1,13 @@
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useFormik } from "formik";
 
 import Container from "../components/container/Container";
 import Input from "../components/form/fields/Input";
 import Form from "../components/form/Form";
+import { useRegisterMutation } from "../generated/graphql";
+import { toErrorMap } from "../utils/toErrorMap";
 
 interface Errors {
   username?: string;
@@ -34,14 +37,23 @@ const validate = (values: Fields) => {
 };
 
 const Register: React.FC = () => {
+  const router = useRouter();
+  const [register, { data }] = useRegisterMutation();
+
   const formik = useFormik({
     initialValues: {
       username: "",
       password: ""
     },
-    validate,
-    onSubmit: (values) => {
-      console.log(values);
+    // validate,
+    onSubmit: async (values, { setErrors }) => {
+      const response = await register({ variables: values });
+
+      if (response.data?.register.errors) {
+        setErrors(toErrorMap(response.data.register.errors));
+      } else if (response.data?.register.user) {
+        router.push("/");
+      }
     }
   });
 
