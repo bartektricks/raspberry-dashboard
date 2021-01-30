@@ -1,11 +1,20 @@
 import Layout from "../components/layout/Layout";
+import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 import "../styles/index.scss";
 
-function MyApp({ Component, pageProps }) {
+const client = new ApolloClient({
+  uri: "http://localhost:2137/graphql",
+  cache: new InMemoryCache(),
+  credentials: "include"
+});
+
+function MyApp({ Component, pageProps }: any) {
   return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
+    <ApolloProvider client={client}>
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
+    </ApolloProvider>
   );
 }
 
