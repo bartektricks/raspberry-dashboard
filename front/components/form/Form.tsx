@@ -1,23 +1,23 @@
 import React, { FormHTMLAttributes } from "react";
+import Button from "../button/Button";
 
 type FormTypes = FormHTMLAttributes<HTMLFormElement> & {
   submitLabel: string;
+  isSubmitting?: boolean;
 };
 
 const Form: React.FC<FormTypes> = ({
   children,
   onSubmit,
-  submitLabel = "Submit"
+  submitLabel = "Submit",
+  isSubmitting
 }) => {
   return (
     <form onSubmit={onSubmit}>
       {children}
-      <button
-        className="w-full py-2 uppercase font-bold rounded-md bg-indigo-700"
-        type="submit"
-      >
+      <Button type="submit" isLoading={isSubmitting}>
         {submitLabel}
-      </button>
+      </Button>
     </form>
   );
 };

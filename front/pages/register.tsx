@@ -49,7 +49,11 @@ const Register: React.FC = () => {
     <Container>
       <Link href="/">Go Back mordo</Link>
       <Container isSmall noGutter>
-        <Form onSubmit={formik.handleSubmit} submitLabel="submit">
+        <Form
+          onSubmit={formik.handleSubmit}
+          submitLabel="submit"
+          isSubmitting={formik.isSubmitting}
+        >
           <Input
             label="Username"
             name="username"
