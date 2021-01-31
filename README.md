@@ -1,3 +1,5 @@
+# My local-network dashboard.
+
 Check `.env.template` file for more info. 
 
 # Quickstart
